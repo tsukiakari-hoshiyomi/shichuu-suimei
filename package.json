@@ -1,0 +1,13 @@
+{
+  "name": "meishiki-kit",
+  "version": "1.0.0",
+  "description": "四柱推命の命式を計算するモジュール（鳥海流・天象学会万年暦準拠）",
+  "type": "module",
+  "main": "meishiki.js",
+  "scripts": {
+    "test": "node test.js",
+    "example": "node example.js"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}

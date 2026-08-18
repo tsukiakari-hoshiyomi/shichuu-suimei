@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>四柱推命 命式計算</title>
+<style>
+  :root {
+    --bg: #faf7f2;
+    --panel: #ffffff;
+    --ink: #2b2420;
+    --sub: #6b6058;
+    --accent: #8c3b3b;
+    --accent-soft: #f3e3d9;
+    --border: #e4dcd0;
+    --good: #8c3b3b;
+    --bad: #4a5a7a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", serif, "Hiragino Kaku Gothic ProN", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    padding-bottom: 3rem;
+  }
+  header {
+    text-align: center;
+    padding: 2.5rem 1rem 1.5rem;
+  }
+  header h1 {
+    margin: 0 0 0.4rem;
+    font-size: 1.6rem;
+    letter-spacing: 0.15em;
+  }
+  header p {
+    margin: 0;
+    color: var(--sub);
+    font-size: 0.85rem;
+  }
+  main {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+  form.input-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .field { display: flex; flex-direction: column; gap: 0.3rem; }
+  .field label { font-size: 0.8rem; color: var(--sub); }
+  .field input[type="date"], .field select {
+    font-size: 1rem;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ink);
+    font-family: inherit;
+  }
+  .sex-group { display: flex; gap: 0.6rem; }
+  .sex-group label {
+    display: flex; align-items: center; gap: 0.3rem;
+    font-size: 0.95rem; padding: 0.5rem 0.8rem;
+    border: 1px solid var(--border); border-radius: 8px;
+    cursor: pointer; user-select: none;
+  }
+  .sex-group input { accent-color: var(--accent); }
+  button[type="submit"] {
+    font-size: 1rem;
+    padding: 0.6rem 1.6rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  button[type="submit"]:hover { opacity: 0.9; }
+
+  #error {
+    max-width: 880px;
+    margin: 1rem auto 0;
+    padding: 0 1rem;
+    color: var(--accent);
+    font-size: 0.9rem;
+    text-align: center;
+    display: none;
+  }
+
+  section.card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.4rem;
+    margin-top: 1.2rem;
+  }
+  section.card h2 {
+    margin: 0 0 1rem;
+    font-size: 1.05rem;
+    border-left: 4px solid var(--accent);
+    padding-left: 0.6rem;
+  }
+  .table-wrap { overflow-x: auto; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.9rem;
+    min-width: 420px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 0.5rem 0.6rem;
+    text-align: center;
+    white-space: nowrap;
+  }
+  th { background: var(--accent-soft); font-weight: 600; }
+  td.head-col, th.head-col { background: var(--accent-soft); font-weight: 600; }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem;
+    margin-top: 1rem;
+  }
+  .summary-item {
+    background: var(--accent-soft);
+    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.85rem;
+  }
+  .summary-item .label { color: var(--sub); font-size: 0.75rem; }
+  .summary-item .value { font-size: 1.05rem; margin-top: 0.15rem; }
+
+  .mark { font-weight: 700; }
+  .mark-good { color: var(--good); }
+  .mark-bad { color: var(--bad); }
+
+  #result { display: none; }
+
+  footer {
+    max-width: 880px;
+    margin: 2rem auto 0;
+    padding: 0 1rem;
+    color: var(--sub);
+    font-size: 0.75rem;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>四柱推命 命式計算</h1>
+  <p>生年月日から命式・大運・年運・月運を表示します（鳥海流・天象学会万年暦準拠）</p>
+</header>
+
+<main>
+  <form class="input-card" id="form">
+    <div class="field">
+      <label for="birthdate">生年月日</label>
+      <input type="date" id="birthdate" name="birthdate" min="1901-01-01" max="2100-12-31" value="1990-08-29" required>
+    </div>
+    <div class="field">
+      <label>性別</label>
+      <div class="sex-group">
+        <label><input type="radio" name="sex" value="女" checked> 女性</label>
+        <label><input type="radio" name="sex" value="男"> 男性</label>
+      </div>
+    </div>
+    <button type="submit">命式を計算する</button>
+  </form>
+
+  <div id="error"></div>
+
+  <div id="result">
+    <section class="card">
+      <h2>命式</h2>
+      <div class="table-wrap">
+        <table id="meishiki-table"></table>
+      </div>
+      <div class="summary-grid" id="summary-grid"></div>
+    </section>
+
+    <section class="card">
+      <h2>大運</h2>
+      <div class="table-wrap">
+        <table id="daiun-table"></table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>年運（今年から12年分）</h2>
+      <div class="table-wrap">
+        <table id="year-fortune-table"></table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>月運（今月から12ヶ月分）</h2>
+      <div class="table-wrap">
+        <table id="month-fortune-table"></table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>天中殺のめぐり</h2>
+      <p id="tenchu-summary"></p>
+    </section>
+  </div>
+
+  <footer>
+    このアプリは <code>meishiki.js</code>（鳥海流・天象学会万年暦準拠の計算ロジック）を使用しています。時柱は含みません。節入り日は近似値のため、節入り前後の生年月日は結果が変わる場合があります。
+  </footer>
+</main>
+
+<script type="module">
+import {
+  calcMeishiki, yearFortune, monthFortune,
+  gogyouOfKan, gogyouOfShi, KAN_YOMI, nextTenchuYears, tenchuMonths,
+} from './meishiki.js';
+
+const form = document.getElementById('form');
+const errorBox = document.getElementById('error');
+const resultBox = document.getElementById('result');
+
+const goStr = (kan, shi) => {
+  const a = gogyouOfKan(kan), b = gogyouOfShi(shi);
+  return `${a.sign}${a.gogyou} / ${b.sign}${b.gogyou}`;
+};
+
+function renderMeishikiTable(r) {
+  const rows = [
+    ['', '日柱', '月柱', '年柱'],
+    ['干支', r.dayKanshi, r.monthKanshi, r.yearKanshi],
+    ['五行', goStr(r.dayKanshi[0], r.dayKanshi[1]), goStr(r.monthKanshi[0], r.monthKanshi[1]), goStr(r.yearKanshi[0], r.yearKanshi[1])],
+    ['蔵干', r.zoukan.day, r.zoukan.month, r.zoukan.year],
+    ['通変星', '—', r.tsuuhensei.month, r.tsuuhensei.year],
+    ['蔵干通変星', r.zoukanTsuuhensei.day, r.zoukanTsuuhensei.month, r.zoukanTsuuhensei.year],
+    ['十二運星', r.unsei.day, r.unsei.month, r.unsei.year],
+  ];
+  const table = document.getElementById('meishiki-table');
+  table.innerHTML = '';
+  rows.forEach((row, ri) => {
+    const tr = document.createElement('tr');
+    row.forEach((cell) => {
+      const el = document.createElement(ri === 0 ? 'th' : 'td');
+      if (ri > 0 && cell === row[0]) el.classList.add('head-col');
+      el.textContent = cell;
+      tr.appendChild(el);
+    });
+    table.appendChild(tr);
+  });
+}
+
+function renderSummary(r) {
+  const ch = r.chusatsu;
+  const names = [];
+  if (ch.seinichi) names.push('生日中殺');
+  if (ch.seigetsu) names.push('生月中殺');
+  if (ch.seinen) names.push('生年中殺');
+  if (ch.hiza.year || ch.hiza.month || ch.hiza.day) names.push('日座中殺');
+
+  const items = [
+    ['日干', `${r.nikkan}（${KAN_YOMI[r.nikkan]}）`],
+    ['天中殺（日柱）', r.tenchu.day],
+    ['天中殺（年柱）', r.tenchu.year],
+    ['運勢エネルギー', `${r.energy.total} / 36（日${r.energy.day} 月${r.energy.month} 年${r.energy.year}）`],
+    ['中殺', names.length ? names.join('・') : 'なし'],
+  ];
+  const grid = document.getElementById('summary-grid');
+  grid.innerHTML = '';
+  items.forEach(([label, value]) => {
+    const div = document.createElement('div');
+    div.className = 'summary-item';
+    div.innerHTML = `<div class="label">${label}</div><div class="value">${value}</div>`;
+    grid.appendChild(div);
+  });
+}
+
+function renderDaiun(r) {
+  const table = document.getElementById('daiun-table');
+  table.innerHTML = '';
+  const header = document.createElement('tr');
+  ['年齢', '干支', '通変星', '十二運星', 'エネルギー'].forEach((h) => {
+    const th = document.createElement('th');
+    th.textContent = h;
+    header.appendChild(th);
+  });
+  table.appendChild(header);
+
+  let from = 0;
+  r.daiun.forEach((x, i) => {
+    const to = i === 0 ? r.startingAge : from + 10;
+    const tr = document.createElement('tr');
+    [`${from}〜${to}才`, x.kanshi, x.tsuuhensei, x.unsei, `E${x.energy}`].forEach((v) => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+    from = to;
+  });
+
+  const caption = document.createElement('caption');
+  caption.style.captionSide = 'top';
+  caption.style.textAlign = 'left';
+  caption.style.fontSize = '0.85rem';
+  caption.style.color = 'var(--sub)';
+  caption.style.marginBottom = '0.5rem';
+  caption.textContent = `${r.daiunDirection}・${r.startingAge}才から`;
+  table.prepend(caption);
+}
+
+function markClass(mark) {
+  if (mark.includes('◎') || mark === '○') return 'mark-good';
+  if (mark.includes('×') || mark === '天' || mark === '中' || mark === '殺') return 'mark-bad';
+  return '';
+}
+
+function renderYearFortune(dayKanshi) {
+  const now = new Date();
+  const table = document.getElementById('year-fortune-table');
+  table.innerHTML = '';
+  const header = document.createElement('tr');
+  ['年', '干支', '記号', '段階', '意味'].forEach((h) => {
+    const th = document.createElement('th');
+    th.textContent = h;
+    header.appendChild(th);
+  });
+  table.appendChild(header);
+
+  yearFortune(dayKanshi, now.getFullYear()).forEach((f) => {
+    const tr = document.createElement('tr');
+    const cells = [`${f.year}年`, f.kanshi, f.mark, f.label, f.note];
+    cells.forEach((v, i) => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      if (i === 2) { td.classList.add('mark', markClass(f.mark)); }
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  });
+}
+
+function renderMonthFortune(dayKanshi) {
+  const now = new Date();
+  const table = document.getElementById('month-fortune-table');
+  table.innerHTML = '';
+  const header = document.createElement('tr');
+  ['年月', '節月の支', '記号', '段階'].forEach((h) => {
+    const th = document.createElement('th');
+    th.textContent = h;
+    header.appendChild(th);
+  });
+  table.appendChild(header);
+
+  monthFortune(dayKanshi, now.getFullYear(), now.getMonth() + 1).forEach((f) => {
+    const tr = document.createElement('tr');
+    const cells = [`${f.year}年${f.month}月`, f.shi, f.mark, f.label];
+    cells.forEach((v, i) => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      if (i === 2) { td.classList.add('mark', markClass(f.mark)); }
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  });
+}
+
+function renderTenchuSummary(dayKanshi) {
+  const now = new Date();
+  const ty = nextTenchuYears(dayKanshi, now.getFullYear());
+  const tm = tenchuMonths(dayKanshi);
+  const el = document.getElementById('tenchu-summary');
+  el.innerHTML = `
+    日柱の天中殺：${window.__lastResult.tenchu.day}<br>
+    次にめぐる年：${ty.天}年（天）→ ${ty.中}年（中）→ ${ty.殺}年（殺）<br>
+    毎年めぐる月：${tm.天}月（天）→ ${tm.中}月（中）→ ${tm.殺}月（殺）
+  `;
+}
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  errorBox.style.display = 'none';
+  const dateVal = document.getElementById('birthdate').value;
+  const sex = form.querySelector('input[name="sex"]:checked').value;
+
+  if (!dateVal) {
+    errorBox.textContent = '生年月日を入力してください。';
+    errorBox.style.display = 'block';
+    return;
+  }
+  const [y, m, d] = dateVal.split('-').map(Number);
+  if (y < 1901 || y > 2100) {
+    errorBox.textContent = '対応範囲は1901年〜2100年です。';
+    errorBox.style.display = 'block';
+    resultBox.style.display = 'none';
+    return;
+  }
+
+  try {
+    const r = calcMeishiki(y, m, d, sex);
+    window.__lastResult = r;
+    renderMeishikiTable(r);
+    renderSummary(r);
+    renderDaiun(r);
+    renderYearFortune(r.dayKanshi);
+    renderMonthFortune(r.dayKanshi);
+    renderTenchuSummary(r.dayKanshi);
+    resultBox.style.display = 'block';
+  } catch (err) {
+    errorBox.textContent = `計算中にエラーが発生しました：${err.message}`;
+    errorBox.style.display = 'block';
+    resultBox.style.display = 'none';
+  }
+});
+
+// 初期表示（デフォルト値で自動計算）
+form.dispatchEvent(new Event('submit'));
+</script>
+
+</body>
+</html>
