@@ -87,17 +87,11 @@
     text-shadow: 0 0 30px rgba(239, 231, 214, 0.25);
   }
   header .sub {
-    margin: 0.9rem 0 0;
-    font-size: 0.75rem;
-    letter-spacing: 0.35em;
+    margin: 1rem 0 0;
+    font-size: 0.95rem;
+    letter-spacing: 0.3em;
+    padding-left: 0.3em;
     color: var(--sub);
-    text-transform: lowercase;
-  }
-  header p.desc {
-    margin: 1.2rem 0 0;
-    color: var(--sub);
-    font-size: 0.8rem;
-    letter-spacing: 0.05em;
   }
 
   main {
@@ -212,8 +206,57 @@
     letter-spacing: 0.15em;
     color: var(--ink);
   }
-  td.tsuuhensei {
+  td.gogyou {
+    color: var(--sub);
+    font-size: 0.85rem;
+  }
+
+  .tenchu-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 1.2rem;
+  }
+  .tenchu-item {
+    flex: 1;
+    min-width: 160px;
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    text-align: center;
+  }
+  .tenchu-item .label {
+    color: var(--sub);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+  }
+  .tenchu-item .value {
+    margin-top: 0.25rem;
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+    color: var(--ink);
+  }
+
+  .daykanshi-card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    padding: 1.8rem 1.5rem;
+    margin-top: 1.4rem;
+    text-align: center;
+    backdrop-filter: blur(6px);
+  }
+  .daykanshi-big {
+    font-size: 2.4rem;
+    letter-spacing: 0.2em;
     color: var(--accent);
+    text-shadow: 0 0 24px rgba(216, 176, 119, 0.35);
+  }
+  .daykanshi-text {
+    margin: 0.9rem 0 0;
+    color: var(--ink);
+    font-size: 0.95rem;
+    line-height: 1.9;
   }
 
   footer {
@@ -233,9 +276,8 @@
 <div class="moon"></div>
 
 <header>
-  <h1>四柱推命</h1>
-  <p class="sub">meishiki</p>
-  <p class="desc">生年月日から日柱・月柱・年柱の干支と通変星を導きます</p>
+  <h1>月灯り</h1>
+  <p class="sub">四柱推命 命式計算</p>
 </header>
 
 <main>
@@ -261,6 +303,12 @@
       <div class="table-wrap">
         <table id="meishiki-table"></table>
       </div>
+      <div class="tenchu-row" id="tenchu-row"></div>
+    </div>
+
+    <div class="daykanshi-card">
+      <div class="daykanshi-big" id="daykanshi-big"></div>
+      <p class="daykanshi-text" id="daykanshi-text"></p>
     </div>
   </div>
 
@@ -270,17 +318,23 @@
 </main>
 
 <script type="module">
-import { calcMeishiki } from './meishiki.js';
+import { calcMeishiki, gogyouOfKan, gogyouOfShi } from './meishiki.js';
+import { KANSHI_TEXT } from './kanshi-text.js';
 
 const form = document.getElementById('form');
 const errorBox = document.getElementById('error');
 const resultBox = document.getElementById('result');
 
+const goStr = (kan, shi) => {
+  const a = gogyouOfKan(kan), b = gogyouOfShi(shi);
+  return `${a.sign}${a.gogyou} / ${b.sign}${b.gogyou}`;
+};
+
 function renderMeishikiTable(r) {
   const rows = [
     ['', '日柱', '月柱', '年柱'],
     ['干支', r.dayKanshi, r.monthKanshi, r.yearKanshi],
-    ['通変星', '—', r.tsuuhensei.month, r.tsuuhensei.year],
+    ['五行', goStr(r.dayKanshi[0], r.dayKanshi[1]), goStr(r.monthKanshi[0], r.monthKanshi[1]), goStr(r.yearKanshi[0], r.yearKanshi[1])],
   ];
   const table = document.getElementById('meishiki-table');
   table.innerHTML = '';
@@ -290,12 +344,32 @@ function renderMeishikiTable(r) {
       const el = document.createElement(ri === 0 ? 'th' : 'td');
       if (ci === 0) el.classList.add('head-col');
       if (ri === 1 && ci > 0) el.classList.add('kanshi');
-      if (ri === 2 && ci > 0) el.classList.add('tsuuhensei');
+      if (ri === 2 && ci > 0) el.classList.add('gogyou');
       el.textContent = cell;
       tr.appendChild(el);
     });
     table.appendChild(tr);
   });
+}
+
+function renderTenchuRow(r) {
+  const row = document.getElementById('tenchu-row');
+  row.innerHTML = `
+    <div class="tenchu-item">
+      <div class="label">天中殺（日柱）</div>
+      <div class="value">${r.tenchu.day}</div>
+    </div>
+    <div class="tenchu-item">
+      <div class="label">天中殺（年柱）</div>
+      <div class="value">${r.tenchu.year}</div>
+    </div>
+  `;
+}
+
+function renderDayKanshi(r) {
+  document.getElementById('daykanshi-big').textContent = r.dayKanshi;
+  const text = KANSHI_TEXT[r.dayKanshi];
+  document.getElementById('daykanshi-text').textContent = text || '（準備中）';
 }
 
 form.addEventListener('submit', (e) => {
@@ -320,6 +394,8 @@ form.addEventListener('submit', (e) => {
   try {
     const r = calcMeishiki(y, m, d, sex);
     renderMeishikiTable(r);
+    renderTenchuRow(r);
+    renderDayKanshi(r);
     resultBox.style.display = 'block';
   } catch (err) {
     errorBox.textContent = `計算中にエラーが発生しました：${err.message}`;
