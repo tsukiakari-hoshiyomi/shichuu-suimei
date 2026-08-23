@@ -6,161 +6,236 @@
 <title>四柱推命 命式計算</title>
 <style>
   :root {
-    --bg: #faf7f2;
-    --panel: #ffffff;
-    --ink: #2b2420;
-    --sub: #6b6058;
-    --accent: #8c3b3b;
-    --accent-soft: #f3e3d9;
-    --border: #e4dcd0;
-    --good: #8c3b3b;
-    --bad: #4a5a7a;
+    --bg-top: #060810;
+    --bg-bottom: #000103;
+    --panel: rgba(255, 255, 255, 0.045);
+    --panel-border: rgba(230, 220, 200, 0.18);
+    --ink: #efe7d6;
+    --sub: #93a0b8;
+    --accent: #d8b077;
+    --accent-soft: rgba(216, 176, 119, 0.14);
+    --border: rgba(230, 220, 200, 0.14);
   }
   * { box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
     margin: 0;
+    min-height: 100vh;
     font-family: "Hiragino Mincho ProN", "Yu Mincho", serif, "Hiragino Kaku Gothic ProN", sans-serif;
-    background: var(--bg);
     color: var(--ink);
-    line-height: 1.6;
-    padding-bottom: 3rem;
+    line-height: 1.7;
+    background: radial-gradient(ellipse at 18% 18%, #0d1424 0%, transparent 45%),
+                linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+    background-attachment: fixed;
+    position: relative;
+    overflow-x: hidden;
   }
+
+  /* 星空 */
+  .stars, .stars::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background-repeat: repeat;
+    background-image:
+      radial-gradient(1.6px 1.6px at 20px 30px, rgba(255,255,255,0.9), transparent 60%),
+      radial-gradient(1.2px 1.2px at 90px 120px, rgba(255,255,255,0.7), transparent 60%),
+      radial-gradient(1px 1px at 160px 40px, rgba(255,255,255,0.55), transparent 60%),
+      radial-gradient(1.4px 1.4px at 230px 170px, rgba(255,255,255,0.8), transparent 60%),
+      radial-gradient(1px 1px at 60px 200px, rgba(255,255,255,0.5), transparent 60%),
+      radial-gradient(1.2px 1.2px at 280px 90px, rgba(255,255,255,0.65), transparent 60%),
+      radial-gradient(1px 1px at 130px 260px, rgba(255,255,255,0.5), transparent 60%),
+      radial-gradient(1.6px 1.6px at 300px 250px, rgba(255,255,255,0.85), transparent 60%),
+      radial-gradient(1px 1px at 10px 280px, rgba(255,255,255,0.45), transparent 60%);
+    background-size: 320px 320px;
+  }
+  .stars::after {
+    background-position: 160px 160px;
+    opacity: 0.6;
+  }
+
+  /* 月 */
+  .moon {
+    position: fixed;
+    top: 8%;
+    left: 10%;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 35%, #ffffff 0%, #eef1f6 35%, #cfd6e4 70%, #b9c2d6 100%);
+    box-shadow: 0 0 60px 18px rgba(230, 236, 255, 0.35), 0 0 120px 50px rgba(200, 210, 245, 0.12);
+    z-index: -1;
+    pointer-events: none;
+  }
+  @media (max-width: 640px) {
+    .moon { width: 80px; height: 80px; top: 5%; left: 8%; }
+  }
+
   header {
     text-align: center;
-    padding: 2.5rem 1rem 1.5rem;
+    padding: 4rem 1rem 2rem;
   }
   header h1 {
-    margin: 0 0 0.4rem;
-    font-size: 1.6rem;
-    letter-spacing: 0.15em;
-  }
-  header p {
     margin: 0;
+    font-size: 2.6rem;
+    letter-spacing: 0.5em;
+    padding-left: 0.5em; /* 字送り分を中央に補正 */
+    font-weight: 500;
+    color: var(--ink);
+    text-shadow: 0 0 30px rgba(239, 231, 214, 0.25);
+  }
+  header .sub {
+    margin: 0.9rem 0 0;
+    font-size: 0.75rem;
+    letter-spacing: 0.35em;
     color: var(--sub);
-    font-size: 0.85rem;
+    text-transform: lowercase;
   }
+  header p.desc {
+    margin: 1.2rem 0 0;
+    color: var(--sub);
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+  }
+
   main {
-    max-width: 880px;
+    max-width: 640px;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 1rem 4rem;
+    position: relative;
   }
+
   form.input-card {
     background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.5rem;
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    padding: 1.8rem 1.5rem;
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 1.2rem;
     align-items: flex-end;
     justify-content: center;
+    backdrop-filter: blur(6px);
   }
-  .field { display: flex; flex-direction: column; gap: 0.3rem; }
-  .field label { font-size: 0.8rem; color: var(--sub); }
+  .field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .field label {
+    font-size: 0.75rem;
+    color: var(--sub);
+    letter-spacing: 0.1em;
+  }
   .field input[type="date"], .field select {
     font-size: 1rem;
-    padding: 0.5rem 0.6rem;
+    padding: 0.55rem 0.7rem;
     border: 1px solid var(--border);
     border-radius: 8px;
-    background: #fff;
+    background: rgba(255,255,255,0.03);
     color: var(--ink);
     font-family: inherit;
+    color-scheme: dark;
   }
   .sex-group { display: flex; gap: 0.6rem; }
   .sex-group label {
-    display: flex; align-items: center; gap: 0.3rem;
-    font-size: 0.95rem; padding: 0.5rem 0.8rem;
+    display: flex; align-items: center; gap: 0.35rem;
+    font-size: 0.9rem; padding: 0.55rem 0.9rem;
     border: 1px solid var(--border); border-radius: 8px;
     cursor: pointer; user-select: none;
+    color: var(--ink);
   }
   .sex-group input { accent-color: var(--accent); }
   button[type="submit"] {
-    font-size: 1rem;
-    padding: 0.6rem 1.6rem;
-    border: none;
+    font-size: 0.95rem;
+    letter-spacing: 0.1em;
+    padding: 0.65rem 1.8rem;
+    border: 1px solid var(--accent);
     border-radius: 8px;
-    background: var(--accent);
-    color: #fff;
+    background: transparent;
+    color: var(--accent);
     cursor: pointer;
     font-family: inherit;
+    transition: background 0.2s, color 0.2s;
   }
-  button[type="submit"]:hover { opacity: 0.9; }
+  button[type="submit"]:hover {
+    background: var(--accent);
+    color: #12100a;
+  }
 
   #error {
-    max-width: 880px;
-    margin: 1rem auto 0;
-    padding: 0 1rem;
-    color: var(--accent);
-    font-size: 0.9rem;
+    margin: 1.2rem auto 0;
+    color: #e2a5a5;
+    font-size: 0.85rem;
     text-align: center;
     display: none;
   }
 
-  section.card {
+  #result {
+    display: none;
+    margin-top: 2.2rem;
+  }
+
+  .meishiki-card {
     background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.4rem;
-    margin-top: 1.2rem;
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    padding: 1.6rem;
+    backdrop-filter: blur(6px);
   }
-  section.card h2 {
-    margin: 0 0 1rem;
-    font-size: 1.05rem;
-    border-left: 4px solid var(--accent);
-    padding-left: 0.6rem;
-  }
+
   .table-wrap { overflow-x: auto; }
   table {
     border-collapse: collapse;
     width: 100%;
-    font-size: 0.9rem;
-    min-width: 420px;
+    font-size: 1rem;
+    min-width: 360px;
   }
   th, td {
     border: 1px solid var(--border);
-    padding: 0.5rem 0.6rem;
+    padding: 0.85rem 0.7rem;
     text-align: center;
-    white-space: nowrap;
   }
-  th { background: var(--accent-soft); font-weight: 600; }
-  td.head-col, th.head-col { background: var(--accent-soft); font-weight: 600; }
-
-  .summary-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 0.8rem;
-    margin-top: 1rem;
+  th {
+    color: var(--sub);
+    font-weight: 500;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    background: rgba(255,255,255,0.02);
   }
-  .summary-item {
-    background: var(--accent-soft);
-    border-radius: 8px;
-    padding: 0.7rem 0.9rem;
-    font-size: 0.85rem;
+  td.head-col, th.head-col {
+    color: var(--sub);
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    background: rgba(255,255,255,0.02);
   }
-  .summary-item .label { color: var(--sub); font-size: 0.75rem; }
-  .summary-item .value { font-size: 1.05rem; margin-top: 0.15rem; }
-
-  .mark { font-weight: 700; }
-  .mark-good { color: var(--good); }
-  .mark-bad { color: var(--bad); }
-
-  #result { display: none; }
+  td.kanshi {
+    font-size: 1.5rem;
+    letter-spacing: 0.15em;
+    color: var(--ink);
+  }
+  td.tsuuhensei {
+    color: var(--accent);
+  }
 
   footer {
-    max-width: 880px;
-    margin: 2rem auto 0;
+    max-width: 640px;
+    margin: 3rem auto 0;
     padding: 0 1rem;
     color: var(--sub);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     text-align: center;
+    letter-spacing: 0.02em;
   }
 </style>
 </head>
 <body>
 
+<div class="stars"></div>
+<div class="moon"></div>
+
 <header>
-  <h1>四柱推命 命式計算</h1>
-  <p>生年月日から命式・大運・年運・月運を表示します（鳥海流・天象学会万年暦準拠）</p>
+  <h1>四柱推命</h1>
+  <p class="sub">meishiki</p>
+  <p class="desc">生年月日から日柱・月柱・年柱の干支と通変星を導きます</p>
 </header>
 
 <main>
@@ -176,45 +251,17 @@
         <label><input type="radio" name="sex" value="男"> 男性</label>
       </div>
     </div>
-    <button type="submit">命式を計算する</button>
+    <button type="submit">計算する</button>
   </form>
 
   <div id="error"></div>
 
   <div id="result">
-    <section class="card">
-      <h2>命式</h2>
+    <div class="meishiki-card">
       <div class="table-wrap">
         <table id="meishiki-table"></table>
       </div>
-      <div class="summary-grid" id="summary-grid"></div>
-    </section>
-
-    <section class="card">
-      <h2>大運</h2>
-      <div class="table-wrap">
-        <table id="daiun-table"></table>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>年運（今年から12年分）</h2>
-      <div class="table-wrap">
-        <table id="year-fortune-table"></table>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>月運（今月から12ヶ月分）</h2>
-      <div class="table-wrap">
-        <table id="month-fortune-table"></table>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>天中殺のめぐり</h2>
-      <p id="tenchu-summary"></p>
-    </section>
+    </div>
   </div>
 
   <footer>
@@ -223,169 +270,32 @@
 </main>
 
 <script type="module">
-import {
-  calcMeishiki, yearFortune, monthFortune,
-  gogyouOfKan, gogyouOfShi, KAN_YOMI, nextTenchuYears, tenchuMonths,
-} from './meishiki.js';
+import { calcMeishiki } from './meishiki.js';
 
 const form = document.getElementById('form');
 const errorBox = document.getElementById('error');
 const resultBox = document.getElementById('result');
 
-const goStr = (kan, shi) => {
-  const a = gogyouOfKan(kan), b = gogyouOfShi(shi);
-  return `${a.sign}${a.gogyou} / ${b.sign}${b.gogyou}`;
-};
-
 function renderMeishikiTable(r) {
   const rows = [
     ['', '日柱', '月柱', '年柱'],
     ['干支', r.dayKanshi, r.monthKanshi, r.yearKanshi],
-    ['五行', goStr(r.dayKanshi[0], r.dayKanshi[1]), goStr(r.monthKanshi[0], r.monthKanshi[1]), goStr(r.yearKanshi[0], r.yearKanshi[1])],
-    ['蔵干', r.zoukan.day, r.zoukan.month, r.zoukan.year],
     ['通変星', '—', r.tsuuhensei.month, r.tsuuhensei.year],
-    ['蔵干通変星', r.zoukanTsuuhensei.day, r.zoukanTsuuhensei.month, r.zoukanTsuuhensei.year],
-    ['十二運星', r.unsei.day, r.unsei.month, r.unsei.year],
   ];
   const table = document.getElementById('meishiki-table');
   table.innerHTML = '';
   rows.forEach((row, ri) => {
     const tr = document.createElement('tr');
-    row.forEach((cell) => {
+    row.forEach((cell, ci) => {
       const el = document.createElement(ri === 0 ? 'th' : 'td');
-      if (ri > 0 && cell === row[0]) el.classList.add('head-col');
+      if (ci === 0) el.classList.add('head-col');
+      if (ri === 1 && ci > 0) el.classList.add('kanshi');
+      if (ri === 2 && ci > 0) el.classList.add('tsuuhensei');
       el.textContent = cell;
       tr.appendChild(el);
     });
     table.appendChild(tr);
   });
-}
-
-function renderSummary(r) {
-  const ch = r.chusatsu;
-  const names = [];
-  if (ch.seinichi) names.push('生日中殺');
-  if (ch.seigetsu) names.push('生月中殺');
-  if (ch.seinen) names.push('生年中殺');
-  if (ch.hiza.year || ch.hiza.month || ch.hiza.day) names.push('日座中殺');
-
-  const items = [
-    ['日干', `${r.nikkan}（${KAN_YOMI[r.nikkan]}）`],
-    ['天中殺（日柱）', r.tenchu.day],
-    ['天中殺（年柱）', r.tenchu.year],
-    ['運勢エネルギー', `${r.energy.total} / 36（日${r.energy.day} 月${r.energy.month} 年${r.energy.year}）`],
-    ['中殺', names.length ? names.join('・') : 'なし'],
-  ];
-  const grid = document.getElementById('summary-grid');
-  grid.innerHTML = '';
-  items.forEach(([label, value]) => {
-    const div = document.createElement('div');
-    div.className = 'summary-item';
-    div.innerHTML = `<div class="label">${label}</div><div class="value">${value}</div>`;
-    grid.appendChild(div);
-  });
-}
-
-function renderDaiun(r) {
-  const table = document.getElementById('daiun-table');
-  table.innerHTML = '';
-  const header = document.createElement('tr');
-  ['年齢', '干支', '通変星', '十二運星', 'エネルギー'].forEach((h) => {
-    const th = document.createElement('th');
-    th.textContent = h;
-    header.appendChild(th);
-  });
-  table.appendChild(header);
-
-  let from = 0;
-  r.daiun.forEach((x, i) => {
-    const to = i === 0 ? r.startingAge : from + 10;
-    const tr = document.createElement('tr');
-    [`${from}〜${to}才`, x.kanshi, x.tsuuhensei, x.unsei, `E${x.energy}`].forEach((v) => {
-      const td = document.createElement('td');
-      td.textContent = v;
-      tr.appendChild(td);
-    });
-    table.appendChild(tr);
-    from = to;
-  });
-
-  const caption = document.createElement('caption');
-  caption.style.captionSide = 'top';
-  caption.style.textAlign = 'left';
-  caption.style.fontSize = '0.85rem';
-  caption.style.color = 'var(--sub)';
-  caption.style.marginBottom = '0.5rem';
-  caption.textContent = `${r.daiunDirection}・${r.startingAge}才から`;
-  table.prepend(caption);
-}
-
-function markClass(mark) {
-  if (mark.includes('◎') || mark === '○') return 'mark-good';
-  if (mark.includes('×') || mark === '天' || mark === '中' || mark === '殺') return 'mark-bad';
-  return '';
-}
-
-function renderYearFortune(dayKanshi) {
-  const now = new Date();
-  const table = document.getElementById('year-fortune-table');
-  table.innerHTML = '';
-  const header = document.createElement('tr');
-  ['年', '干支', '記号', '段階', '意味'].forEach((h) => {
-    const th = document.createElement('th');
-    th.textContent = h;
-    header.appendChild(th);
-  });
-  table.appendChild(header);
-
-  yearFortune(dayKanshi, now.getFullYear()).forEach((f) => {
-    const tr = document.createElement('tr');
-    const cells = [`${f.year}年`, f.kanshi, f.mark, f.label, f.note];
-    cells.forEach((v, i) => {
-      const td = document.createElement('td');
-      td.textContent = v;
-      if (i === 2) { td.classList.add('mark', markClass(f.mark)); }
-      tr.appendChild(td);
-    });
-    table.appendChild(tr);
-  });
-}
-
-function renderMonthFortune(dayKanshi) {
-  const now = new Date();
-  const table = document.getElementById('month-fortune-table');
-  table.innerHTML = '';
-  const header = document.createElement('tr');
-  ['年月', '節月の支', '記号', '段階'].forEach((h) => {
-    const th = document.createElement('th');
-    th.textContent = h;
-    header.appendChild(th);
-  });
-  table.appendChild(header);
-
-  monthFortune(dayKanshi, now.getFullYear(), now.getMonth() + 1).forEach((f) => {
-    const tr = document.createElement('tr');
-    const cells = [`${f.year}年${f.month}月`, f.shi, f.mark, f.label];
-    cells.forEach((v, i) => {
-      const td = document.createElement('td');
-      td.textContent = v;
-      if (i === 2) { td.classList.add('mark', markClass(f.mark)); }
-      tr.appendChild(td);
-    });
-    table.appendChild(tr);
-  });
-}
-
-function renderTenchuSummary(dayKanshi) {
-  const now = new Date();
-  const ty = nextTenchuYears(dayKanshi, now.getFullYear());
-  const tm = tenchuMonths(dayKanshi);
-  const el = document.getElementById('tenchu-summary');
-  el.innerHTML = `
-    日柱の天中殺：${window.__lastResult.tenchu.day}<br>
-    次にめぐる年：${ty.天}年（天）→ ${ty.中}年（中）→ ${ty.殺}年（殺）<br>
-    毎年めぐる月：${tm.天}月（天）→ ${tm.中}月（中）→ ${tm.殺}月（殺）
-  `;
 }
 
 form.addEventListener('submit', (e) => {
@@ -409,13 +319,7 @@ form.addEventListener('submit', (e) => {
 
   try {
     const r = calcMeishiki(y, m, d, sex);
-    window.__lastResult = r;
     renderMeishikiTable(r);
-    renderSummary(r);
-    renderDaiun(r);
-    renderYearFortune(r.dayKanshi);
-    renderMonthFortune(r.dayKanshi);
-    renderTenchuSummary(r.dayKanshi);
     resultBox.style.display = 'block';
   } catch (err) {
     errorBox.textContent = `計算中にエラーが発生しました：${err.message}`;
