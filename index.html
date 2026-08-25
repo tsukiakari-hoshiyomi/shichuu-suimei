@@ -26,7 +26,6 @@
     line-height: 1.7;
     background: radial-gradient(ellipse at 18% 18%, #0d1424 0%, transparent 45%),
                 linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
-    background-attachment: fixed;
     position: relative;
     overflow-x: hidden;
   }
@@ -257,6 +256,27 @@
     color: var(--ink);
     font-size: 0.95rem;
     line-height: 1.9;
+    white-space: pre-line;
+    text-align: left;
+  }
+
+  .chusatsu-item {
+    margin-top: 0.8rem;
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    text-align: center;
+  }
+  .chusatsu-item .label {
+    color: var(--sub);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+  }
+  .chusatsu-item .value {
+    margin-top: 0.25rem;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+    color: var(--ink);
   }
 
   footer {
@@ -304,6 +324,7 @@
         <table id="meishiki-table"></table>
       </div>
       <div class="tenchu-row" id="tenchu-row"></div>
+      <div class="chusatsu-item" id="chusatsu-item"></div>
     </div>
 
     <div class="daykanshi-card">
@@ -366,6 +387,21 @@ function renderTenchuRow(r) {
   `;
 }
 
+function renderChusatsu(r) {
+  const ch = r.chusatsu;
+  const names = [];
+  if (ch.seinichi) names.push('生日中殺');
+  if (ch.seigetsu) names.push('生月中殺');
+  if (ch.seinen) names.push('生年中殺');
+  if (ch.hiza.year || ch.hiza.month || ch.hiza.day) names.push('日座中殺');
+
+  const el = document.getElementById('chusatsu-item');
+  el.innerHTML = `
+    <div class="label">中殺</div>
+    <div class="value">${names.length ? names.join('・') : 'なし'}</div>
+  `;
+}
+
 function renderDayKanshi(r) {
   document.getElementById('daykanshi-big').textContent = r.dayKanshi;
   const text = KANSHI_TEXT[r.dayKanshi];
@@ -395,6 +431,7 @@ form.addEventListener('submit', (e) => {
     const r = calcMeishiki(y, m, d, sex);
     renderMeishikiTable(r);
     renderTenchuRow(r);
+    renderChusatsu(r);
     renderDayKanshi(r);
     resultBox.style.display = 'block';
   } catch (err) {
