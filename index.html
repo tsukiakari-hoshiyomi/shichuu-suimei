@@ -251,13 +251,32 @@
     color: var(--accent);
     text-shadow: 0 0 24px rgba(216, 176, 119, 0.35);
   }
+  .daykanshi-big rt {
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    color: var(--sub);
+    text-shadow: none;
+  }
   .daykanshi-text {
     margin: 0.9rem 0 0;
     color: var(--ink);
     font-size: 0.95rem;
     line-height: 1.9;
     white-space: pre-line;
-    text-align: left;
+    text-align: center;
+  }
+  .note-link {
+    display: inline-block;
+    margin-top: 1.4rem;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid var(--accent);
+    padding-bottom: 0.15rem;
+  }
+  .note-link:hover {
+    opacity: 0.8;
   }
 
   .chusatsu-item {
@@ -330,6 +349,7 @@
     <div class="daykanshi-card">
       <div class="daykanshi-big" id="daykanshi-big"></div>
       <p class="daykanshi-text" id="daykanshi-text"></p>
+      <a class="note-link" href="https://note.com/miiwa_uranai" target="_blank" rel="noopener noreferrer">詳細はこちらへ →</a>
     </div>
   </div>
 
@@ -339,7 +359,7 @@
 </main>
 
 <script type="module">
-import { calcMeishiki, gogyouOfKan, gogyouOfShi } from './meishiki.js';
+import { calcMeishiki, gogyouOfKan, gogyouOfShi, KAN_YOMI, SHI_YOMI } from './meishiki.js';
 import { KANSHI_TEXT } from './kanshi-text.js';
 
 const form = document.getElementById('form');
@@ -403,7 +423,8 @@ function renderChusatsu(r) {
 }
 
 function renderDayKanshi(r) {
-  document.getElementById('daykanshi-big').textContent = r.dayKanshi;
+  const yomi = KAN_YOMI[r.dayKanshi[0]] + SHI_YOMI[r.dayKanshi[1]];
+  document.getElementById('daykanshi-big').innerHTML = `<ruby>${r.dayKanshi}<rt>${yomi}</rt></ruby>`;
   const text = KANSHI_TEXT[r.dayKanshi];
   document.getElementById('daykanshi-text').textContent = text || '（準備中）';
 }
