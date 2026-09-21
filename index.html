@@ -245,13 +245,20 @@
     text-align: center;
     backdrop-filter: blur(6px);
   }
+  .daykanshi-label {
+    color: var(--sub);
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.9rem;
+  }
   .daykanshi-big {
     font-size: 2.4rem;
     letter-spacing: 0.2em;
     color: var(--accent);
     text-shadow: 0 0 24px rgba(216, 176, 119, 0.35);
   }
-  .daykanshi-big rt {
+  .daykanshi-yomi {
+    margin-bottom: 0.35rem;
     font-size: 0.9rem;
     letter-spacing: 0.05em;
     color: var(--sub);
@@ -347,9 +354,10 @@
     </div>
 
     <div class="daykanshi-card">
+      <div class="daykanshi-label">日柱 干支</div>
       <div class="daykanshi-big" id="daykanshi-big"></div>
       <p class="daykanshi-text" id="daykanshi-text"></p>
-      <a class="note-link" href="https://note.com/miiwa_uranai" target="_blank" rel="noopener noreferrer">詳細はこちらへ →</a>
+      <a class="note-link" href="https://note.com/miiwa_uranai" target="_blank" rel="noopener noreferrer">詳細はこちら（note）へ →</a>
     </div>
   </div>
 
@@ -424,7 +432,7 @@ function renderChusatsu(r) {
 
 function renderDayKanshi(r) {
   const yomi = KAN_YOMI[r.dayKanshi[0]] + SHI_YOMI[r.dayKanshi[1]];
-  document.getElementById('daykanshi-big').innerHTML = `<ruby>${r.dayKanshi}<rt>${yomi}</rt></ruby>`;
+  document.getElementById('daykanshi-big').innerHTML = `<div class="daykanshi-yomi">${yomi}</div><div>${r.dayKanshiNumber}.${r.dayKanshi}</div>`;
   const text = KANSHI_TEXT[r.dayKanshi];
   document.getElementById('daykanshi-text').textContent = text || '（準備中）';
 }

@@ -342,6 +342,7 @@ export function calcMeishiki(year, month, day, sex) {
     yearKanshi: yearP.kanshi,
     monthKanshi: monthP.kanshi,
     dayKanshi: dayP.kanshi,
+    dayKanshiNumber: dayP.idx + 1,
     nikkan,
   };
 
